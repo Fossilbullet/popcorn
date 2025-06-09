@@ -15,16 +15,24 @@ def get_training_status():
         return jsonify({"error": "Missing training_id parameter"}), 400
 
     try:
-        training = client.trainings.get(training_id)
-        return jsonify({
+        training = replicate_client.trainings.get(training_id)
+
+        response_data = {
             "status": training.status,
-            "urls": training.urls,
-            "completed_at": training.completed_at,
-            "started_at": training.started_at,
-            "error": training.error
-        })
+            "training_id": training.id,
+            "trigger_word": training.input.get("trigger_word")  # ← added this line
+        }
+
+        if training.status == "succeeded":
+            response_data["model_version"] = training.output.get("version")
+
+        if training.status == "failed":
+            response_data["error"] = training.error
+
+        return jsonify(response_data)
+
     except Exception as e:
-        return jsonify({"error": f"Failed to retrieve training status: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to fetch training status: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10001)))
