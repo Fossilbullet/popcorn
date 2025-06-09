@@ -15,7 +15,7 @@ def get_training_status():
         return jsonify({"error": "Missing training_id parameter"}), 400
 
     try:
-        training = replicate_client.trainings.get(training_id)
+        training = client.trainings.get(training_id)
 
         response_data = {
             "status": training.status,
